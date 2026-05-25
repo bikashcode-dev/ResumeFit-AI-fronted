@@ -224,6 +224,52 @@ function ProjectCard({ p, index, builderDraft, updateBuilderDraft, handleImprove
   )
 }
 
+function CustomSectionCard({ section, index, builderDraft, updateBuilderDraft }) {
+  return (
+    <div className="entry-card">
+      <div className="field">
+        <label>Section title</label>
+        <input
+          className="input"
+          value={section.title || ''}
+          onChange={e => {
+            const arr = [...(builderDraft.custom || [])]
+            arr[index] = { ...section, title: e.target.value }
+            updateBuilderDraft({ custom: arr })
+          }}
+          placeholder="e.g. Coursework, Volunteer Work, Publications"
+        />
+      </div>
+      <div className="field">
+        <label>Details</label>
+        <textarea
+          className="textarea"
+          rows={3}
+          value={section.content || ''}
+          onChange={e => {
+            const arr = [...(builderDraft.custom || [])]
+            arr[index] = { ...section, content: e.target.value }
+            updateBuilderDraft({ custom: arr })
+          }}
+          placeholder="Add one detail per line."
+        />
+      </div>
+      <button
+        type="button"
+        className="btn btn-ghost btn-sm danger-text"
+        onClick={() =>
+          updateBuilderDraft({
+            custom: (builderDraft.custom || []).filter((_, idx) => idx !== index),
+          })
+        }
+      >
+        <Trash2 size={12} />
+        Remove
+      </button>
+    </div>
+  )
+}
+
 export default function BuilderPage() {
   const { builderDraft, updateBuilderDraft, setGeneratedResume } = useApp()
   const navigate = useNavigate()
@@ -255,6 +301,14 @@ export default function BuilderPage() {
   async function handleGenerate() {
     if (!hasMeaningfulContent(builderDraft)) {
       setError('Enter your name and at least one section (summary, experience, or skills) before generating.')
+      return
+    }
+    if (!builderDraft.name?.trim() || !builderDraft.targetRole?.trim() || !builderDraft.level?.trim()) {
+      setError('Add your name, target role, and candidate level before generating.')
+      return
+    }
+    if (!flattenSkills(skills).length) {
+      setError('Add at least one skill before generating.')
       return
     }
     setError(null)
@@ -651,6 +705,33 @@ export default function BuilderPage() {
           onChange={v => updateField('achievements', v)}
           placeholder="Measurable outcomes you are proud of"
         />
+      </SectionBlock>
+
+      <SectionBlock title={`Additional sections (${builderDraft.custom?.length || 0})`}>
+        {(builderDraft.custom || []).map((section, i) => (
+          <CustomSectionCard
+            key={i}
+            section={section}
+            index={i}
+            builderDraft={builderDraft}
+            updateBuilderDraft={updateBuilderDraft}
+          />
+        ))}
+        <button
+          type="button"
+          className="btn btn-secondary btn-sm"
+          onClick={() =>
+            updateBuilderDraft({
+              custom: [
+                ...(builderDraft.custom || []),
+                { title: '', content: '', enabled: true },
+              ],
+            })
+          }
+        >
+          <Plus size={13} />
+          Add section
+        </button>
       </SectionBlock>
 
       <div className="builder-footer">

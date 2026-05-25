@@ -122,11 +122,11 @@ export default function OptimizerPage() {
 
   function buildMatchPayload(resumeText, jdAnalysis) {
     return {
-      resume: resumeText,
+      resumeText,
       jobDescription,
-      targetRole: targetRole || undefined,
+      roleType: targetRole || undefined,
       candidateStage: candidateStage || undefined,
-      skills: confirmedSkills.length ? confirmedSkills : undefined,
+      skills: confirmedSkills.length ? confirmedSkills.join(', ') : undefined,
       confirmedSkills: confirmedSkills.length ? confirmedSkills : undefined,
       jdAnalysis: jdAnalysis || undefined,
     }
@@ -207,11 +207,12 @@ export default function OptimizerPage() {
       try {
         const suggData = await getSuggestions(
           {
-            resume: resumeText,
+            resumeText,
             jobDescription,
             matchResult: matchData,
-            targetRole,
-            skills: confirmedSkills,
+            roleType: targetRole,
+            skills: confirmedSkills.join(', '),
+            candidateStage,
           },
           signal
         )
@@ -245,12 +246,13 @@ export default function OptimizerPage() {
     try {
       const result = await optimizeResume(
         {
-          resume: resumeText,
+          resumeText,
           jobDescription,
           matchResult,
           suggestions,
-          targetRole,
-          skills: confirmedSkills,
+          roleType: targetRole,
+          skills: confirmedSkills.join(', '),
+          candidateStage,
         },
         signal
       )
@@ -286,10 +288,11 @@ export default function OptimizerPage() {
     try {
       const resumeText = extractTextFromParsed(parsedResume)
       const suggData = await getSuggestions({
-        resume: resumeText,
+        resumeText,
         jobDescription,
         matchResult,
-        skills: confirmedSkills,
+        skills: confirmedSkills.join(', '),
+        candidateStage,
       })
       set({ suggestions: suggData })
     } catch (e) {
@@ -593,6 +596,8 @@ export default function OptimizerPage() {
             matchResult={matchResult}
             suggestions={suggestions}
             targetRole={targetRole}
+            candidateStage={candidateStage}
+            skills={confirmedSkills}
             onSelectVersion={handleSelectVersion}
           />
 

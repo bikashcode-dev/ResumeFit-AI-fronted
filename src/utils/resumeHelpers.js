@@ -137,8 +137,45 @@ export function normalizeKeywords(list) {
 }
 
 export function builderPayloadFromDraft(draft) {
+  const skills = flattenSkills(draft.skills)
+  const listToLines = list =>
+    (list || [])
+      .map(item => (typeof item === 'string' ? item : Object.values(item || {}).filter(Boolean).join(' | ')))
+      .filter(Boolean)
+      .join('\n')
+
   return {
-    ...draft,
-    skills: flattenSkills(draft.skills),
+    fullName: draft.name || '',
+    phone: draft.phone || '',
+    email: draft.email || '',
+    linkedinUrl: draft.linkedin || '',
+    githubUrl: draft.github || '',
+    portfolioUrl: draft.portfolio || '',
+    currentLocation: draft.location || '',
+    roleType: draft.targetRole || '',
+    candidateLevel: draft.level || '',
+    skills: skills.join(', '),
+    summary: draft.summary || '',
+    experienceDetails: listToLines(draft.experience),
+    educationDetails: listToLines(draft.education),
+    projectDetails: listToLines(draft.projects),
+    certifications: (draft.certifications || []).join('\n'),
+    achievements: (draft.achievements || []).join('\n'),
+    sectionOrder: draft.sectionOrder || [],
+    customSections: (draft.custom || [])
+      .filter(section => section?.title?.trim() || section?.content?.trim())
+      .map((section, index) => ({
+        sectionKey: section.sectionKey || `custom-${index + 1}`,
+        title: section.title || 'Additional Details',
+        content: section.content || '',
+        enabled: section.enabled !== false,
+      })),
+    includeSummary: draft.enabledSections?.summary !== false,
+    includeSkills: draft.enabledSections?.skills !== false,
+    includeProjects: draft.enabledSections?.projects !== false,
+    includeEducation: draft.enabledSections?.education !== false,
+    includeExperience: draft.enabledSections?.experience !== false,
+    includeCertifications: draft.enabledSections?.certifications !== false,
+    includeAchievements: draft.enabledSections?.achievements !== false,
   }
 }

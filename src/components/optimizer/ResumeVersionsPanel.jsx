@@ -21,6 +21,8 @@ export default function ResumeVersionsPanel({
   matchResult,
   suggestions,
   targetRole,
+  candidateStage,
+  skills = [],
   onSelectVersion,
 }) {
   const [open, setOpen] = useState(false)
@@ -36,11 +38,13 @@ export default function ResumeVersionsPanel({
     setOpen(true)
     try {
       const res = await getVersions({
-        resume: extractTextFromParsed(parsedResume),
+        resumeText: extractTextFromParsed(parsedResume),
         jobDescription,
         matchResult,
         suggestions,
-        targetRole: targetRole || undefined,
+        roleType: targetRole || undefined,
+        skills: Array.isArray(skills) ? skills.join(', ') : skills,
+        candidateStage,
       })
       const list = normalizeVersionsResponse(res)
       setVersions(list)
