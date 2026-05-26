@@ -22,6 +22,7 @@ import ReorderableList from '../components/ui/ReorderableList.jsx'
 import { useToast } from '../components/ui/Toast.jsx'
 
 const DEFAULT_SKILL_ORDER = ['languages', 'frameworks', 'databases', 'tools', 'soft']
+const DEFAULT_SECTION_ORDER = ['summary', 'skills', 'projects', 'education', 'experience', 'certifications', 'achievements']
 
 const LEVELS = [
   { value: '', label: 'Select level…' },
@@ -36,6 +37,16 @@ const SKILL_GROUPS = [
   { key: 'databases', label: 'Databases' },
   { key: 'tools', label: 'Tools & platforms' },
   { key: 'soft', label: 'Soft skills' },
+]
+
+const SECTION_ORDER_OPTIONS = [
+  { key: 'summary', label: 'Summary', hint: 'Short role-fit intro for recruiter scan.' },
+  { key: 'skills', label: 'Skills', hint: 'ATS keywords, tools, languages, and frameworks.' },
+  { key: 'projects', label: 'Projects', hint: 'Strong proof for fresher and intern profiles.' },
+  { key: 'education', label: 'Education', hint: 'Degree, coursework, and academic base.' },
+  { key: 'experience', label: 'Experience', hint: 'Internship, freelance, training, or work history.' },
+  { key: 'certifications', label: 'Certifications', hint: 'Extra proof for role fundamentals.' },
+  { key: 'achievements', label: 'Achievements', hint: 'Measurable wins and recognitions.' },
 ]
 
 function TagInput({ values, onChange, placeholder }) {
@@ -331,15 +342,18 @@ export default function BuilderPage() {
     setSectionMsg(null)
     try {
       const entry = builderDraft[section][idx]
+      const currentContent = entry.description || entry.text || ''
       const result = await assistSection({
-        section,
-        content: entry.description || entry.text || '',
-        context: { targetRole: builderDraft.targetRole, level: builderDraft.level },
+        sectionType: section,
+        currentContent,
+        roleType: builderDraft.targetRole?.trim() || 'General role',
+        candidateLevel: builderDraft.level?.trim() || 'Candidate',
+        skills: flattenSkills(skills).join(', '),
       })
       const updated = [...builderDraft[section]]
       updated[idx] = {
         ...entry,
-        description: result.improved || result.content || entry.description,
+        description: result.improvedContent || currentContent,
       }
       updateBuilderDraft({ [section]: updated })
     } catch (e) {
@@ -355,12 +369,14 @@ export default function BuilderPage() {
     setSectionMsg(null)
     try {
       const result = await assistSection({
-        section: 'summary',
-        content: builderDraft.summary,
-        context: { targetRole: builderDraft.targetRole, level: builderDraft.level },
+        sectionType: 'summary',
+        currentContent: builderDraft.summary,
+        roleType: builderDraft.targetRole?.trim() || 'General role',
+        candidateLevel: builderDraft.level?.trim() || 'Candidate',
+        skills: flattenSkills(skills).join(', '),
       })
       updateBuilderDraft({
-        summary: result.improved || result.content || builderDraft.summary,
+        summary: result.improvedContent || builderDraft.summary,
       })
     } catch (e) {
       setSectionMsg(getFriendlyError(e))
@@ -550,25 +566,58 @@ export default function BuilderPage() {
         )}
       </SectionBlock>
 
+      <SectionBlock title="Resume section order">
+        <p className="field-hint reorder-hint">
+          Reorder sections for fresher, intern, or experienced applications before generating.
+        </p>
+        <ReorderableList
+          label="Resume section order"
+          items={(builderDraft.sectionOrder || DEFAULT_SECTION_ORDER)
+            .map(key => SECTION_ORDER_OPTIONS.find(item => item.key === key))
+            .filter(Boolean)}
+          keyExtractor={item => item.key}
+          onReorder={ordered => {
+            updateBuilderDraft({ sectionOrder: ordered.map(item => item.key) })
+            addToast('Resume section order updated', 'success')
+          }}
+          renderItem={item => (
+            <div className="reorder-entry-summary">
+              <strong>{item.label}</strong>
+              <span className="muted-text">{item.hint}</span>
+            </div>
+          )}
+        />
+      </SectionBlock>
+
       <SectionBlock title={`Experience (${builderDraft.experience?.length || 0})`}>
-        {builderDraft.experience?.map((exp, i) => (
-          <ExperienceEntry
-            key={i}
-            entry={exp}
-            onChange={v => {
-              const arr = [...builderDraft.experience]
-              arr[i] = v
-              updateBuilderDraft({ experience: arr })
-            }}
-            onRemove={() =>
-              updateBuilderDraft({
-                experience: builderDraft.experience.filter((_, idx) => idx !== i),
-              })
-            }
-            onImprove={() => handleImproveSection('experience', i)}
-            improving={!!improvingIdx[`experience-${i}`]}
-          />
-        ))}
+        <p className="field-hint reorder-hint">Drag to put the most relevant experience first.</p>
+        <ReorderableList
+          label="Experience entries"
+          items={builderDraft.experience || []}
+          keyExtractor={(_, i) => `exp-${i}`}
+          emptyLabel="No experience yet - add one below."
+          onReorder={next => {
+            updateBuilderDraft({ experience: next })
+            addToast('Experience order updated', 'success')
+          }}
+          renderItem={(exp, i) => (
+            <ExperienceEntry
+              entry={exp}
+              onChange={v => {
+                const arr = [...builderDraft.experience]
+                arr[i] = v
+                updateBuilderDraft({ experience: arr })
+              }}
+              onRemove={() =>
+                updateBuilderDraft({
+                  experience: builderDraft.experience.filter((_, idx) => idx !== i),
+                })
+              }
+              onImprove={() => handleImproveSection('experience', i)}
+              improving={!!improvingIdx[`experience-${i}`]}
+            />
+          )}
+        />
         <button
           type="button"
           className="btn btn-secondary btn-sm"

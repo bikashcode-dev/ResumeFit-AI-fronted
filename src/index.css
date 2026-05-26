@@ -595,6 +595,87 @@ html, body, #root {
   line-height: 1.5;
 }
 
+.suggestion-reason {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.analysis-board { overflow: hidden; }
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.analysis-panel {
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.analysis-panel h3 {
+  margin-bottom: 10px;
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.analysis-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.analysis-list {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.analysis-explanation {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.section-priority-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-priority-list li {
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+}
+
+.section-priority-list strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 12.5px;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.section-priority-list span {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.strategy-warning { margin-top: 14px; }
+
 .suggestion-badge {
   font-size: 10px;
   font-weight: 600;
@@ -2166,7 +2247,7 @@ html, body, #root {
   .toolbar { grid-column: 1; padding: 0 12px; }
   .workspace { grid-column: 1; }
   .workspace-main { padding: 16px; }
-  .grid-2, .compare-grid, .landing-workflow { grid-template-columns: 1fr; }
+  .grid-2, .compare-grid, .landing-workflow, .analysis-grid { grid-template-columns: 1fr; }
   .landing-nav { padding: 12px 16px; }
   .landing-hero, .landing-section { padding-left: 16px; padding-right: 16px; }
   .toolbar-center { display: none; }

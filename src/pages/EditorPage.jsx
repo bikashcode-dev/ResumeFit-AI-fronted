@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import { useApp } from '../app/AppContext.jsx'
 import { assistSection, getFriendlyError } from '../api/resumeApi.js'
-import { formatSectionName } from '../utils/resumeHelpers.js'
+import { flattenSkills, formatSectionName, normalizeResumeData } from '../utils/resumeHelpers.js'
 import OptimizerSuggestionsPanel from '../components/editor/OptimizerSuggestionsPanel.jsx'
 import ReorderableList from '../components/ui/ReorderableList.jsx'
 import { useToast } from '../components/ui/Toast.jsx'
@@ -25,6 +25,7 @@ const EDITABLE_SECTIONS = [
   'projects',
   'certifications',
   'achievements',
+  'rawOptimizedText',
 ]
 
 function useUndoStack(initial) {
@@ -59,7 +60,7 @@ function useUndoStack(initial) {
   return { current, push, undo, revert, canUndo: cursor > 0 }
 }
 
-function SectionEditor({ sectionKey, value, onSave, targetRole, level }) {
+function SectionEditor({ sectionKey, value, onSave, targetRole, level, skills }) {
   const [open, setOpen] = useState(sectionKey === 'summary')
   const isArray = Array.isArray(value)
   const textValue = isArray ? JSON.stringify(value, null, 2) : value || ''
@@ -92,11 +93,13 @@ function SectionEditor({ sectionKey, value, onSave, targetRole, level }) {
     setSectionError(null)
     try {
       const result = await assistSection({
-        section: sectionKey,
-        content: local,
-        context: { targetRole, level },
+        sectionType: sectionKey,
+        currentContent: local,
+        roleType: targetRole?.trim() || 'General role',
+        candidateLevel: level?.trim() || 'Candidate',
+        skills,
       })
-      setLocal(result.improved || result.content || local)
+      setLocal(result.improvedContent || local)
       setDirty(true)
     } catch (e) {
       setSectionError(getFriendlyError(e))
@@ -123,7 +126,7 @@ function SectionEditor({ sectionKey, value, onSave, targetRole, level }) {
         <div className="section-block-body">
           <textarea
             className="textarea"
-            rows={sectionKey === 'summary' ? 4 : isArray ? 6 : 4}
+            rows={sectionKey === 'rawOptimizedText' ? 12 : sectionKey === 'summary' ? 4 : isArray ? 6 : 4}
             value={local}
             onChange={e => {
               setLocal(e.target.value)
@@ -137,6 +140,11 @@ function SectionEditor({ sectionKey, value, onSave, targetRole, level }) {
           {isArray && (
             <p className="field-hint">
               Editing as JSON — keep valid array structure for structured sections.
+            </p>
+          )}
+          {sectionKey === 'rawOptimizedText' && (
+            <p className="field-hint">
+              Backend returned a full optimized draft. Keep this fallback or copy useful lines into structured sections.
             </p>
           )}
           {sectionError && (
@@ -190,7 +198,11 @@ export default function EditorPage() {
   const { addToast } = useToast()
 
   const source = generatedResume || optimizerState.optimizedResume
-  const { current, push, undo, revert, canUndo } = useUndoStack(source || {})
+  const normalizedSource = useMemo(
+    () => normalizeResumeData(source, normalizeResumeData(optimizerState.parsedResume) || {}),
+    [source, optimizerState.parsedResume]
+  )
+  const { current, push, undo, revert, canUndo } = useUndoStack(normalizedSource || {})
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
@@ -213,7 +225,9 @@ export default function EditorPage() {
   }
 
   function handleSaveSection(key, value) {
-    const updated = { ...current, [key]: value }
+    const updated = key === 'rawOptimizedText'
+      ? { ...current, rawOptimizedText: value, optimizedResume: value }
+      : { ...current, [key]: value }
     push(updated)
     setGeneratedResume(updated)
     setSaved(true)
@@ -221,9 +235,9 @@ export default function EditorPage() {
   }
 
   const hasContent =
-    source &&
-    Object.keys(source).some(k => {
-      const v = source[k]
+    normalizedSource &&
+    Object.keys(normalizedSource).some(k => {
+      const v = normalizedSource[k]
       return v && (typeof v === 'string' ? v.trim() : Array.isArray(v) ? v.length : false)
     })
 
@@ -361,7 +375,8 @@ export default function EditorPage() {
             value={val}
             onSave={v => handleSaveSection(key, v)}
             targetRole={builderDraft.targetRole || optimizerState.targetRole}
-            level={builderDraft.level}
+            level={builderDraft.level || optimizerState.candidateStage}
+            skills={flattenSkills(builderDraft.skills || {}).join(', ')}
           />
         )
       })}

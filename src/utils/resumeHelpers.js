@@ -24,6 +24,11 @@ export function extractTextFromParsed(parsed) {
   if (parsed.content) return parsed.content
   if (parsed.rawText) return parsed.rawText
   if (parsed.resumeText) return parsed.resumeText
+  if (parsed.rawOptimizedText) return parsed.rawOptimizedText
+  if (parsed.optimizedResume) return parsed.optimizedResume
+  if (parsed.generatedResume) return parsed.generatedResume
+  if (parsed.baseResume) return parsed.baseResume
+  if (parsed.cleanText) return parsed.cleanText
   return JSON.stringify(parsed)
 }
 
@@ -36,35 +41,169 @@ export function flattenSkills(skills) {
   return []
 }
 
+const SECTION_ALIASES = {
+  summary: ['SUMMARY', 'PROFILE', 'PROFESSIONAL SUMMARY', 'OBJECTIVE'],
+  skills: ['SKILLS', 'TECHNICAL SKILLS', 'CORE SKILLS', 'TOOLS', 'TECHNOLOGIES'],
+  experience: ['EXPERIENCE', 'WORK EXPERIENCE', 'PROFESSIONAL EXPERIENCE', 'INTERNSHIP', 'INTERNSHIPS'],
+  education: ['EDUCATION', 'ACADEMIC BACKGROUND'],
+  projects: ['PROJECTS', 'PROJECT EXPERIENCE'],
+  certifications: ['CERTIFICATIONS', 'CERTIFICATES'],
+  achievements: ['ACHIEVEMENTS', 'AWARDS'],
+}
+
+function canonicalSectionName(title) {
+  const normalized = String(title || '').trim().replace(/[:\-]+$/, '').toUpperCase()
+  const match = Object.entries(SECTION_ALIASES).find(([, aliases]) => aliases.includes(normalized))
+  return match?.[0] || null
+}
+
+function splitSectionText(text) {
+  const lines = String(text || '').replace(/\r/g, '').split('\n')
+  const sections = {}
+  let current = null
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim()
+    const section = canonicalSectionName(line)
+    if (section) {
+      current = section
+      if (!sections[current]) sections[current] = []
+      continue
+    }
+    if (!line) {
+      if (current) sections[current].push('')
+      continue
+    }
+    if (!current) {
+      current = 'summary'
+      if (!sections[current]) sections[current] = []
+    }
+    sections[current].push(line)
+  }
+
+  return Object.fromEntries(
+    Object.entries(sections).map(([key, value]) => [
+      key,
+      value.join('\n').replace(/\n{3,}/g, '\n\n').trim(),
+    ])
+  )
+}
+
+function listFromText(text) {
+  return String(text || '')
+    .split(/\n|,|•/g)
+    .map(item => item.replace(/^[-*]\s*/, '').trim())
+    .filter(Boolean)
+}
+
+function blocksFromText(text) {
+  const blocks = String(text || '')
+    .split(/\n{2,}/g)
+    .map(block => block.trim())
+    .filter(Boolean)
+  return blocks.length ? blocks : listFromText(text)
+}
+
+function parseExperienceBlock(block) {
+  const lines = String(block || '').split('\n').map(line => line.replace(/^[-*]\s*/, '').trim()).filter(Boolean)
+  const [first, ...rest] = lines
+  return {
+    title: first || 'Experience',
+    company: '',
+    duration: '',
+    description: rest.length ? rest.join('\n') : first || '',
+  }
+}
+
+function parseProjectBlock(block) {
+  const lines = String(block || '').split('\n').map(line => line.replace(/^[-*]\s*/, '').trim()).filter(Boolean)
+  const [first, ...rest] = lines
+  return {
+    name: first || 'Project',
+    description: rest.length ? rest.join('\n') : first || '',
+  }
+}
+
+export function normalizeResumeData(input, fallback = {}) {
+  if (!input) return null
+  if (typeof input === 'string') {
+    const sections = splitSectionText(input)
+    return {
+      ...fallback,
+      summary: sections.summary || fallback.summary || '',
+      skills: sections.skills ? listFromText(sections.skills) : flattenSkills(fallback.skills),
+      experience: sections.experience
+        ? blocksFromText(sections.experience).map(parseExperienceBlock)
+        : fallback.experience || [],
+      education: sections.education
+        ? listFromText(sections.education).map(item => ({ degree: item, institution: '', year: '' }))
+        : fallback.education || [],
+      projects: sections.projects
+        ? blocksFromText(sections.projects).map(parseProjectBlock)
+        : fallback.projects || [],
+      certifications: sections.certifications ? listFromText(sections.certifications) : fallback.certifications || [],
+      achievements: sections.achievements ? listFromText(sections.achievements) : fallback.achievements || [],
+      rawOptimizedText: input,
+    }
+  }
+
+  if (typeof input === 'object') {
+    const resumeText =
+      input.optimizedResume ||
+      input.generatedResume ||
+      input.baseResume ||
+      input.cleanText ||
+      input.resumeText ||
+      input.text ||
+      ''
+    const base = resumeText ? normalizeResumeData(resumeText, fallback) : { ...fallback }
+    return {
+      ...base,
+      ...input,
+      summary: input.summary ?? base.summary ?? '',
+      skills: input.skills ?? base.skills ?? [],
+      experience: input.experience ?? base.experience ?? [],
+      education: input.education ?? base.education ?? [],
+      projects: input.projects ?? base.projects ?? [],
+      certifications: input.certifications ?? base.certifications ?? [],
+      achievements: input.achievements ?? base.achievements ?? [],
+      rawOptimizedText: input.rawOptimizedText || resumeText || base.rawOptimizedText || '',
+    }
+  }
+
+  return null
+}
+
 export function buildPreviewFromDraft(draft) {
   if (!draft) return null
-  const flatSkills = flattenSkills(draft.skills)
+  const normalized = normalizeResumeData(draft) || draft
+  const flatSkills = flattenSkills(normalized.skills)
   return {
-    name: draft.name || '',
+    name: normalized.name || normalized.fullName || '',
     contact: {
-      email: draft.email || '',
-      phone: draft.phone || '',
-      location: draft.location || '',
-      linkedin: draft.linkedin || '',
-      github: draft.github || '',
-      portfolio: draft.portfolio || '',
+      email: normalized.email || normalized.contact?.email || '',
+      phone: normalized.phone || normalized.contact?.phone || '',
+      location: normalized.location || normalized.currentLocation || normalized.contact?.location || '',
+      linkedin: normalized.linkedin || normalized.linkedinUrl || normalized.contact?.linkedin || '',
+      github: normalized.github || normalized.githubUrl || normalized.contact?.github || '',
+      portfolio: normalized.portfolio || normalized.portfolioUrl || normalized.contact?.portfolio || '',
     },
-    summary: draft.summary || '',
+    summary: normalized.summary || '',
     skills: flatSkills,
-    experience: draft.experience || [],
-    education: draft.education || [],
-    projects: draft.projects || [],
-    certifications: draft.certifications || [],
-    achievements: draft.achievements || [],
-    custom: draft.custom || [],
+    experience: normalized.experience || [],
+    education: normalized.education || [],
+    projects: normalized.projects || [],
+    certifications: normalized.certifications || [],
+    achievements: normalized.achievements || [],
+    custom: normalized.custom || [],
+    rawOptimizedText: normalized.rawOptimizedText || '',
   }
 }
 
 export function buildPreviewFromOptimized(optimized, parsed) {
   if (!optimized) return null
-  const base = typeof parsed === 'object' && parsed ? parsed : {}
-  const merged = { ...base, ...optimized }
-  return buildPreviewFromDraft(merged)
+  const base = normalizeResumeData(parsed) || {}
+  return buildPreviewFromDraft(normalizeResumeData(optimized, base))
 }
 
 export function formatSectionName(key) {

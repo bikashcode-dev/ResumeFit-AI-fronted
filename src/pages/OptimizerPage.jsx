@@ -46,13 +46,88 @@ function Step({ num, label, active, done }) {
 }
 
 function SuggestionItem({ text, type }) {
+  const normalizedType = String(type || 'fix').toLowerCase()
   const labels = { add: 'Add', fix: 'Fix', remove: 'Remove' }
+  const display =
+    typeof text === 'string'
+      ? text
+      : text?.action || text?.suggestion || text?.text || text?.title || ''
+  const reason = typeof text === 'object' ? text.reason : ''
   return (
     <div className="suggestion-item">
-      <span className={`suggestion-badge suggestion-${type || 'fix'}`}>
-        {labels[type] || type || 'Tip'}
+      <span className={`suggestion-badge suggestion-${normalizedType}`}>
+        {labels[normalizedType] || normalizedType || 'Tip'}
       </span>
-      <span>{text}</span>
+      <span>
+        {display}
+        {reason && <small className="suggestion-reason">{reason}</small>}
+      </span>
+    </div>
+  )
+}
+
+function keywordText(item) {
+  return typeof item === 'string' ? item : item?.keyword || item?.skill || item?.name || item?.term || ''
+}
+
+function ResumeStrategyPanel({ jdAnalysis, matchResult, candidateStage, optimizedResume }) {
+  const priorities = optimizedResume?.recommendedOrder?.length
+    ? optimizedResume.recommendedOrder.map((section, index) => ({ section, priority: index + 1, reason: '' }))
+    : matchResult?.sectionPriorities || []
+  const requiredSkills = jdAnalysis?.requiredSkills || jdAnalysis?.keywordTiers?.mustHave || []
+  const tools = jdAnalysis?.tools || []
+  const roleSignals = jdAnalysis?.roleSignals || []
+  const level = jdAnalysis?.experienceLevel || candidateStage || matchResult?.selectedCandidateStage || 'candidate'
+
+  if (!jdAnalysis && !priorities.length && !matchResult?.explanation?.length) return null
+
+  return (
+    <div className="card analysis-board">
+      <div className="card-header">
+        <div className="card-title">Analysis & resume strategy</div>
+        <span className="badge badge-blue">{level}</span>
+      </div>
+      <div className="analysis-grid">
+        <section className="analysis-panel">
+          <h3>JD priorities</h3>
+          <div className="analysis-chip-group">
+            {requiredSkills.slice(0, 8).map(item => (
+              <span key={keywordText(item)} className="badge badge-blue">{keywordText(item)}</span>
+            ))}
+            {tools.slice(0, 6).map(item => (
+              <span key={keywordText(item)} className="badge badge-gray">{keywordText(item)}</span>
+            ))}
+          </div>
+          {roleSignals.length > 0 && (
+            <ul className="analysis-list">
+              {roleSignals.slice(0, 3).map(signal => <li key={signal}>{signal}</li>)}
+            </ul>
+          )}
+        </section>
+
+        <section className="analysis-panel">
+          <h3>Recommended section order</h3>
+          <ol className="section-priority-list">
+            {priorities.slice(0, 7).map((item, index) => (
+              <li key={`${item.section}-${index}`}>
+                <strong>{index + 1}. {item.section}</strong>
+                {item.reason && <span>{item.reason}</span>}
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+      {matchResult?.profileMismatchWarning && (
+        <div className="alert alert-warning strategy-warning">
+          <AlertTriangle size={13} />
+          <span>{matchResult.profileMismatchWarning}</span>
+        </div>
+      )}
+      {matchResult?.explanation?.length > 0 && (
+        <ul className="analysis-list analysis-explanation">
+          {matchResult.explanation.slice(0, 4).map(item => <li key={item}>{item}</li>)}
+        </ul>
+      )}
     </div>
   )
 }
@@ -306,6 +381,7 @@ export default function OptimizerPage() {
     matchResult?.atsScore ?? matchResult?.score ?? matchResult?.matchScore
   const truthScore = matchResult?.truthScore ?? matchResult?.credibilityScore ?? matchResult?.honestyScore
   const skillGaps = matchResult?.skillGaps ?? matchResult?.missingSkills ?? matchResult?.criticalGaps ?? []
+  const optionalSkillGaps = matchResult?.optionalSkillGaps ?? []
   const matchedSkills = matchResult?.matchedSkills ?? matchResult?.presentSkills ?? matchResult?.coveredSkills ?? []
   const matchedKeywords = normalizeKeywords(
     matchResult?.matchedKeywords ?? matchResult?.keywordsMatched ?? []
@@ -538,6 +614,13 @@ export default function OptimizerPage() {
             </div>
           )}
 
+          <ResumeStrategyPanel
+            jdAnalysis={optimizerState.jdAnalysis}
+            matchResult={matchResult}
+            candidateStage={candidateStage}
+            optimizedResume={optimizedResume}
+          />
+
           <Collapsible title="Critical skill gaps" count={skillGaps?.length} defaultOpen>
             {skillGaps?.length > 0 ? (
               <div className="chip-row">
@@ -552,6 +635,18 @@ export default function OptimizerPage() {
               <p className="muted-text">No critical gaps detected for your confirmed skills.</p>
             )}
           </Collapsible>
+
+          {optionalSkillGaps?.length > 0 && (
+            <Collapsible title="Good-to-have gaps" count={optionalSkillGaps.length}>
+              <div className="chip-row">
+                {optionalSkillGaps.map((s, i) => (
+                  <span key={i} className="badge badge-yellow">
+                    {keywordText(s)}
+                  </span>
+                ))}
+              </div>
+            </Collapsible>
+          )}
 
           {matchedSkills?.length > 0 && (
             <Collapsible title="Covered skills" count={matchedSkills.length}>
