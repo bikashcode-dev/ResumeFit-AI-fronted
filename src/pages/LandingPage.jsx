@@ -13,57 +13,58 @@ import {
   Zap,
 } from 'lucide-react'
 import { useApp } from '../app/AppContext.jsx'
+import BrandLogo from '../components/brand/BrandLogo.jsx'
 
 const FEATURES = [
   {
     icon: Target,
     color: '#2563eb',
     bg: '#eff6ff',
-    title: 'ATS Score Analysis',
-    desc: 'Instantly see how your resume scores against any job description and what ATS systems are likely to miss.',
+    title: 'JD-to-resume scoring',
+    desc: 'Compare your resume with a pasted job description and see which keywords, tools, and role signals are covered.',
   },
   {
     icon: Zap,
     color: '#7c3aed',
     bg: '#f5f3ff',
-    title: 'AI-Powered Optimization',
-    desc: 'Rewrite bullet points, close keyword gaps, and improve recruiter readability with controlled AI suggestions.',
+    title: 'Controlled rewrite support',
+    desc: 'Improve summaries and bullets without inventing companies, dates, metrics, or skills you do not actually have.',
   },
   {
     icon: BarChart3,
     color: '#0891b2',
     bg: '#ecfeff',
-    title: 'Skill Gap Detection',
-    desc: 'Understand which skills are strong, partially matched, or missing for the exact role you are targeting.',
+    title: 'Skill gap map',
+    desc: 'Separate must-have gaps from good-to-have gaps so you know what to add, explain, or leave out.',
   },
   {
     icon: Shield,
     color: '#16a34a',
     bg: '#f0fdf4',
-    title: 'Credibility Scoring',
-    desc: 'Keep the resume honest and role-aligned instead of keyword-stuffed or fake-looking.',
+    title: 'Credibility checks',
+    desc: 'Flag weak claims and overstuffed wording before the resume reaches a recruiter.',
   },
   {
     icon: Layers,
     color: '#d97706',
     bg: '#fffbeb',
-    title: 'Resume Builder',
-    desc: 'Create real sections from your own details with live preview, editing, and export-ready formatting.',
+    title: 'Section-based builder',
+    desc: 'Write profile, skills, projects, education, and experience in the order that fits your stage.',
   },
   {
     icon: FileText,
     color: '#dc2626',
     bg: '#fef2f2',
-    title: 'Multi-Format Export',
-    desc: 'Export ATS PDF, minimal PDF, DOCX, and plain text from the current live draft.',
+    title: 'Recruiter-ready export',
+    desc: 'Download ATS PDF, minimal PDF, DOCX, or plain text from the draft you just reviewed.',
   },
 ]
 
 const WORKFLOW = [
   { num: '1', title: 'Upload your resume', desc: 'Start from a PDF or DOCX and let the parser extract usable content.' },
   { num: '2', title: 'Paste the job description', desc: 'Use any real posting from LinkedIn, Indeed, or a company career page.' },
-  { num: '3', title: 'Review the analysis', desc: 'See ATS score, matched skills, missing keywords, and concrete suggestions.' },
-  { num: '4', title: 'Apply AI improvements', desc: 'Generate a stronger version while keeping the content editable and honest.' },
+  { num: '3', title: 'Review the analysis', desc: 'Check score, matched skills, missing keywords, section order, and rewrite notes.' },
+  { num: '4', title: 'Apply improvements', desc: 'Create a tighter draft, then review every section before export.' },
   { num: '5', title: 'Export and apply', desc: 'Download a recruiter-ready file in the format your application needs.' },
 ]
 
@@ -79,9 +80,7 @@ function ProductPreview() {
       <div className="preview-body">
         <aside className="preview-sidebar">
           <div className="preview-logo-row">
-            <div className="preview-logo-mark">
-              <FileText size={12} />
-            </div>
+            <BrandLogo size={20} />
             <strong>ResumeFit AI</strong>
           </div>
           {['Dashboard', 'Optimizer', 'Builder', 'Exports'].map((item, index) => (
@@ -140,9 +139,7 @@ export default function LandingPage() {
     <div className="landing">
       <header className="landing-nav">
         <Link to="/" className="landing-nav-logo" aria-label="ResumeFit AI home">
-          <span className="landing-logo-mark">
-            <FileText size={14} />
-          </span>
+          <BrandLogo size={28} />
           ResumeFit AI
         </Link>
 
@@ -166,22 +163,22 @@ export default function LandingPage() {
         <section className="hero">
           <div className="hero-eyebrow">
             <Zap size={12} />
-            AI-powered resume intelligence
+            ATS-focused resume workspace
           </div>
 
           <h1 className="hero-title">
-            Get your resume <em>past the ATS</em> and in front of humans
+            Tune your resume for the role before you apply
           </h1>
 
           <p className="hero-sub">
-            Match your resume to any job description, identify gaps, improve wording, and export a recruiter-ready version from one focused workspace.
+            Upload a resume, paste the JD, review the match, then edit and export a role-specific draft without losing control of the content.
           </p>
 
           <div className="stat-row">
             {[
-              ['Instant', 'ATS scoring'],
-              ['Precise', 'skill gaps'],
-              ['Editable', 'AI rewrites'],
+              ['Role-based', 'ATS scoring'],
+              ['Clear', 'skill gaps'],
+              ['Reviewable', 'rewrites'],
               ['4', 'export formats'],
             ].map(([value, label]) => (
               <div key={label} className="stat-pill">
@@ -207,9 +204,9 @@ export default function LandingPage() {
 
         <section className="features-section" id="features">
           <div className="features-label">What ResumeFit AI does</div>
-          <h2 className="features-heading">Everything needed to land the interview</h2>
+          <h2 className="features-heading">Built around the resume decisions that matter</h2>
           <p className="features-sub">
-            A real product workflow for job seekers: parse, analyze, improve, build, and export without leaving the app.
+            Every screen supports the same flow: parse the resume, compare it to the JD, fix weak sections, and export a clean draft.
           </p>
 
           <div className="landing-feature-grid">
@@ -246,8 +243,8 @@ export default function LandingPage() {
 
         <section className="landing-cta">
           <div className="landing-cta-inner">
-            <h2>Ready to beat the ATS?</h2>
-            <p>Start with your current resume, paste a job description, and improve the draft with backend-powered analysis.</p>
+            <h2>Check the next resume before sending it</h2>
+            <p>Start with your current file, confirm your real skills, and turn the analysis into an editable draft.</p>
             <div className="landing-cta-actions">
               <Link to="/optimizer" className="hero-btn-primary">
                 <Zap size={16} />
@@ -261,12 +258,10 @@ export default function LandingPage() {
 
       <footer className="landing-footer">
         <div className="landing-footer-brand">
-          <span className="landing-logo-mark">
-            <FileText size={12} />
-          </span>
+          <BrandLogo size={24} />
           <strong>ResumeFit AI</strong>
         </div>
-        <p className="footer-copy">AI-powered resume optimization platform</p>
+        <p className="footer-copy">ATS analysis, resume editing, and export workflow</p>
         <div className="landing-footer-links">
           <Link to="/optimizer">Optimizer</Link>
           <Link to="/builder">Builder</Link>

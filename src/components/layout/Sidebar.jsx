@@ -1,6 +1,7 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { LayoutDashboard, Zap, PenTool, FileEdit, Download, Clock } from 'lucide-react'
+import BrandLogo from '../brand/BrandLogo.jsx'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -16,7 +17,7 @@ export default function Sidebar({ isOpen, onClose }) {
     <aside className={`sidebar${isOpen ? ' open' : ''}`}>
       <div className="sidebar-logo">
         <NavLink to="/" className="sidebar-logo-link" onClick={onClose}>
-          <div className="logo-mark">R</div>
+          <BrandLogo size={30} className="brand-logo" />
           <div className="logo-text">
             Resume<span>Fit</span> AI
           </div>

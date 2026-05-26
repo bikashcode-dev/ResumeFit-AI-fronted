@@ -43,10 +43,10 @@ const SECTION_ORDER_OPTIONS = [
   { key: 'summary', label: 'Summary', hint: 'Short role-fit intro for recruiter scan.' },
   { key: 'skills', label: 'Skills', hint: 'ATS keywords, tools, languages, and frameworks.' },
   { key: 'projects', label: 'Projects', hint: 'Strong proof for fresher and intern profiles.' },
-  { key: 'education', label: 'Education', hint: 'Degree, coursework, and academic base.' },
+  { key: 'education', label: 'Education', hint: 'Degree, coursework, and academic context.' },
   { key: 'experience', label: 'Experience', hint: 'Internship, freelance, training, or work history.' },
-  { key: 'certifications', label: 'Certifications', hint: 'Extra proof for role fundamentals.' },
-  { key: 'achievements', label: 'Achievements', hint: 'Measurable wins and recognitions.' },
+  { key: 'certifications', label: 'Certifications', hint: 'Role-relevant credentials and course completions.' },
+  { key: 'achievements', label: 'Achievements', hint: 'Measurable outcomes, awards, or recognitions.' },
 ]
 
 function TagInput({ values, onChange, placeholder }) {
@@ -390,7 +390,7 @@ export default function BuilderPage() {
       <div className="page-header">
         <h1 className="page-title">Resume Builder</h1>
         <p className="page-subtitle">
-          Enter your real details section by section. Preview stays empty until you add content.
+          Build the resume from your own details, then reorder sections for the role and candidate stage.
         </p>
       </div>
 
@@ -539,7 +539,7 @@ export default function BuilderPage() {
       </SectionBlock>
 
       <SectionBlock title="Skills" defaultOpen>
-        <p className="field-hint reorder-hint">Drag grip or use arrows to reorder skill groups on your resume.</p>
+        <p className="field-hint reorder-hint">Move the strongest skill groups higher before generating the resume.</p>
         <ReorderableList
           label="Skill groups"
           items={(builderDraft.skillGroupOrder || DEFAULT_SKILL_ORDER)
@@ -562,13 +562,13 @@ export default function BuilderPage() {
           )}
         />
         {flattenSkills(skills).length > 0 && (
-          <p className="field-hint">{flattenSkills(skills).length} skills across groups.</p>
+          <p className="field-hint">{flattenSkills(skills).length} skills included across groups.</p>
         )}
       </SectionBlock>
 
       <SectionBlock title="Resume section order">
         <p className="field-hint reorder-hint">
-          Reorder sections for fresher, intern, or experienced applications before generating.
+            Put projects and education higher for fresher/intern resumes; put experience higher for experienced roles.
         </p>
         <ReorderableList
           label="Resume section order"
@@ -590,7 +590,7 @@ export default function BuilderPage() {
       </SectionBlock>
 
       <SectionBlock title={`Experience (${builderDraft.experience?.length || 0})`}>
-        <p className="field-hint reorder-hint">Drag to put the most relevant experience first.</p>
+        <p className="field-hint reorder-hint">Put the most role-relevant experience first.</p>
         <ReorderableList
           label="Experience entries"
           items={builderDraft.experience || []}
@@ -705,7 +705,7 @@ export default function BuilderPage() {
       </SectionBlock>
 
       <SectionBlock title={`Projects (${builderDraft.projects?.length || 0})`}>
-        <p className="field-hint reorder-hint">Drag to reorder projects — top items appear first on the resume.</p>
+        <p className="field-hint reorder-hint">Put the strongest project first; top projects appear first on the resume.</p>
         <ReorderableList
           label="Projects"
           items={builderDraft.projects || []}
@@ -802,7 +802,7 @@ export default function BuilderPage() {
             </>
           )}
         </button>
-        <span className="field-hint">Uses your entered content only — no placeholder resume data.</span>
+        <span className="field-hint">Generation uses the content entered here; no sample resume data is added.</span>
       </div>
     </div>
   )

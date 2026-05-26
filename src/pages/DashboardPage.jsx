@@ -78,7 +78,7 @@ export default function DashboardPage() {
       <div className="page-header">
         <h1 className="page-title">Dashboard</h1>
         <p className="page-subtitle">
-          Your resume workspace — track progress, ATS scores, and next steps.
+          Track the active resume, target role, analysis status, and export readiness.
         </p>
       </div>
 
@@ -122,7 +122,7 @@ export default function DashboardPage() {
         <Link to="/optimizer" className="workspace-hub-item">
           <Zap size={16} />
           <span>Optimizer</span>
-          <small>Upload → JD → Analyze</small>
+          <small>Upload, JD, analysis</small>
         </Link>
         <Link to="/builder" className="workspace-hub-item">
           <PenTool size={16} />
@@ -140,21 +140,21 @@ export default function DashboardPage() {
         <QuickCard
           icon={Zap}
           title="Optimize resume"
-          description="Upload PDF/DOCX, paste a JD, and get ATS scores, keyword gaps, and AI improvements."
+          description="Upload a file, paste the JD, then review ATS score, keyword coverage, and section advice."
           action="Start optimizing"
           to="/optimizer"
         />
         <QuickCard
           icon={PenTool}
           title="Build from scratch"
-          description="Create an ATS-ready resume from your real profile, skills, and experience."
+          description="Create a resume from profile, skills, projects, education, and experience sections."
           action="Open builder"
           to="/builder"
         />
         <QuickCard
           icon={Download}
           title="Export resume"
-          description="Download ATS PDF, minimal PDF, DOCX, or plain text when your draft is ready."
+          description="Download ATS PDF, minimal PDF, DOCX, or plain text after the draft is reviewed."
           action="Go to exports"
           to="/exports"
         />
@@ -208,7 +208,7 @@ export default function DashboardPage() {
             )}
             {hasParsed && !optimizerState.matchResult && (
               <>
-                <p>Resume uploaded — paste the job description and run ATS analysis.</p>
+                <p>Resume uploaded. Paste the job description and run ATS analysis.</p>
                 <Link to="/optimizer" className="btn btn-primary btn-sm" style={{ marginTop: 12 }}>
                   Continue in Optimizer
                 </Link>
@@ -216,7 +216,7 @@ export default function DashboardPage() {
             )}
             {optimizerState.matchResult && !hasOptimized && (
               <>
-                <p>Analysis complete — review gaps and apply AI improvements.</p>
+                <p>Analysis complete. Review gaps, section order, and rewrite suggestions.</p>
                 <Link to="/optimizer" className="btn btn-primary btn-sm" style={{ marginTop: 12 }}>
                   Optimize now
                 </Link>
@@ -224,7 +224,7 @@ export default function DashboardPage() {
             )}
             {(hasOptimized || hasGenerated) && (
               <>
-                <p>Your draft is ready — refine in the Editor (suggestion checklist) or export.</p>
+                <p>Your draft is ready. Refine sections in the Editor or export the current version.</p>
                 <div className="row" style={{ marginTop: 12 }}>
                   <Link to="/editor" className="btn btn-secondary btn-sm">
                     Editor
