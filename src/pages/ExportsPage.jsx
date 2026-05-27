@@ -88,7 +88,7 @@ export default function ExportsPage() {
         blob = await exportPdf('minimal', payload)
         filename = names['minimal-pdf']
       } else if (type === 'txt') {
-        blob = new Blob([payload.resume], { type: 'text/plain' })
+        blob = new Blob([payload.resumeText], { type: 'text/plain' })
         filename = names.txt
       }
 

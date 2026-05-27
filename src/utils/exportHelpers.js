@@ -61,16 +61,19 @@ export function buildExportPayload(content, { builderDraft, optimizerState, gene
         ? 'optimizer'
         : 'upload'
 
+  const fileName = resolveResumeName(content, builderDraft, optimizerState) || 'resume'
+
   return {
-    resume: resumeText,
-    data: content,
+    resumeText,
+    fileName,
+    documentTitle: fileName,
+    templateProfile: content?.templateProfile || optimizerState?.parsedResume?.templateProfile || null,
     metadata: {
       exportedAt: new Date().toISOString(),
       targetRole: optimizerState?.targetRole || builderDraft?.targetRole || '',
       candidateStage: optimizerState?.candidateStage || builderDraft?.level || '',
       atsScore: atsScore != null ? Math.round(Number(atsScore)) : null,
       source,
-      filenameHint: resolveResumeName(content, builderDraft, optimizerState) || 'resume',
     },
   }
 }

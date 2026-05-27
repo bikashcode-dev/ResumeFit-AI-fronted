@@ -209,8 +209,8 @@ export default function OptimizerPage() {
 
   async function handleFileDrop(file) {
     if (!file) return
-    if (!file.name.match(/\.(pdf|docx|txt)$/i)) {
-      setError('Please upload a PDF, DOCX, or TXT file.')
+    if (!file.name.match(/\.(pdf|docx)$/i)) {
+      setError('Please upload a PDF or DOCX resume file.')
       return
     }
     setError(null)
@@ -473,7 +473,7 @@ export default function OptimizerPage() {
             <input
               ref={fileRef}
               type="file"
-              accept=".pdf,.docx,.txt"
+              accept=".pdf,.docx"
               className="sr-only"
               onChange={e => handleFileDrop(e.target.files[0])}
             />
@@ -486,7 +486,7 @@ export default function OptimizerPage() {
               <>
                 <FileText size={28} className="upload-icon" />
                 <p className="upload-title">Drop your resume or click to browse</p>
-                <p className="upload-hint">PDF, DOCX, or TXT</p>
+                <p className="upload-hint">PDF or DOCX</p>
               </>
             )}
           </div>
@@ -500,7 +500,7 @@ export default function OptimizerPage() {
             <input
               ref={fileRef}
               type="file"
-              accept=".pdf,.docx,.txt"
+              accept=".pdf,.docx"
               className="sr-only"
               onChange={e => handleFileDrop(e.target.files[0])}
             />
