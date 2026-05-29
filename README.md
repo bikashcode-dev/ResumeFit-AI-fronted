@@ -17,6 +17,7 @@ A full-stack resume optimization platform that helps job seekers compare their r
 - Reorder skills, experience, and projects with drag controls
 - Export as DOCX, ATS PDF, minimal PDF, or plain text
 - Everything persists in your browser session — no account needed
+- 
 
 ---
 
@@ -97,7 +98,7 @@ You need at least one AI provider key (Gemini or OpenRouter). If neither is set,
 
 **Example CORS value:**
 ```
-APP_CORS_ALLOWED_ORIGINS=https://ai-resume-builder-cv-match.netlify.app,http://localhost:5173
+APP_CORS_ALLOWED_ORIGINS=http://localhost:5173
 ```
 
 ---
