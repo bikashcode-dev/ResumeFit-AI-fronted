@@ -13,7 +13,7 @@ const FRIENDLY_ERRORS = {
   ECONNABORTED:
     'The request timed out. The backend may be waking up. Please wait a moment and try again.',
   ERR_NETWORK:
-    'Cannot reach the backend. Check your connection or try again shortly. Render cold starts can take a minute.',
+    'Cannot reach the backend. Check your connection or try again shortly.',
   500: 'The server encountered an error. Please try again.',
   503: 'The backend is unavailable or warming up. Please try again shortly.',
   422: 'The request could not be processed. Please check your input.',
