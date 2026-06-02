@@ -24,34 +24,42 @@
 ## How it works
 
 ```
-Upload Resume (PDF/DOCX)  →  Paste Job Description  →  ATS Score + Gaps  →  Edit & Export
+01 Upload Resume (PDF/DOCX)
+       ↓
+02 Paste Job Description
+       ↓
+03 Get ATS Score + Keyword Gaps
+       ↓
+04 AI Optimize Resume
+       ↓
+05 Export (DOCX · ATS PDF · Minimal PDF · Plain Text)
 ```
 
 ---
 
 ## Features
 
-| | Feature | What it does |
+| | Feature | Description |
 |---|---|---|
-| 🎯 | ATS scoring | Match score with matched/missing keywords against any job description |
-| ✨ | AI rewrite | Before/after resume optimization with section-level suggestions |
-| 🏗️ | Resume builder | Build from scratch with drag-to-reorder skills, experience, and projects |
-| 📤 | Multi-format export | DOCX · ATS PDF · minimal PDF · plain text — no account needed |
+| 🎯 | **ATS Scoring** | Match score with matched & missing keywords vs any job description |
+| ✨ | **AI Rewrite** | Before/after optimization with section-level AI suggestions |
+| 🏗️ | **Resume Builder** | Build from scratch — drag to reorder skills, experience, projects |
+| 📤 | **Multi-format Export** | DOCX · ATS PDF · Minimal PDF · Plain Text — no account needed |
 
 ---
 
-## Project structure
+## Project Structure
 
 ```
 resume-builder/
-  backend resume builder/        Spring Boot API
+  backend resume builder/        ← Spring Boot API
   frontend resume builder/
-    resumefit-ai/                React + Vite frontend
+    resumefit-ai/                ← React + Vite frontend
 ```
 
 ---
 
-## Frontend setup
+## Frontend Setup
 
 **Stack:** React 18 · Vite 5 · React Router · Axios · Lucide React
 
@@ -61,16 +69,20 @@ npm install
 npm run dev
 ```
 
-Override API URL:
+Override API URL via `.env`:
+
 ```env
 VITE_API_URL=https://resumefit-ai-backend.onrender.com
 ```
 
-**Netlify:** build command `npm run build` · publish dir `dist` · SPA routing via `public/_redirects`
+**Netlify deploy:**
+- Build command: `npm run build`
+- Publish directory: `dist`
+- SPA routing via `public/_redirects`
 
 ---
 
-## Backend setup
+## Backend Setup
 
 **Stack:** Java 17 · Spring Boot 3.3.5 · Maven · Apache PDFBox · Apache POI · Lombok
 
@@ -87,21 +99,21 @@ cd "backend resume builder"
 ./mvnw clean package
 ```
 
-> If Maven clean fails, a Java process is locking `target/` — stop it and retry.
+> **Note:** If Maven clean fails, a Java process is locking `target/` — stop it and retry.
 
 ---
 
-## Environment variables
+## Environment Variables
 
-> Set in your deployment provider (Render dashboard) — never hardcode in source.  
-> At minimum, set `APP_CORS_ALLOWED_ORIGINS` and one AI provider key.
+> Set in your deployment provider (e.g. Render dashboard) — **never hardcode in source.**
+> At minimum you need `APP_CORS_ALLOWED_ORIGINS` and **one AI provider key.**
 
-| Variable | Default | |
+| Variable | Default | Notes |
 |---|---|---|
-| `APP_CORS_ALLOWED_ORIGINS` | — | ⚠️ Required |
-| `GEMINI_API_KEY` | — | ⚠️ Min one AI key |
+| `APP_CORS_ALLOWED_ORIGINS` | — | ⚠️ Required — comma-separated frontend origins |
+| `GEMINI_API_KEY` | — | ⚠️ Min one AI key required |
 | `GEMINI_MODEL` | `gemini-2.5-flash` | |
-| `OPENROUTER_API_KEY` | — | |
+| `OPENROUTER_API_KEY` | — | Alternative AI provider |
 | `OPENROUTER_MODEL` | `openai/gpt-4o-mini` | |
 | `LOCAL_AI_ENABLED` | `false` | Set `true` for local Ollama |
 | `LOCAL_AI_URL` | `http://localhost:11434` | |
@@ -109,7 +121,7 @@ cd "backend resume builder"
 
 ---
 
-## API reference
+## API Reference
 
 Base path: `/api`
 
@@ -122,40 +134,60 @@ Base path: `/api`
 | `POST` | `/api/resume/suggestions` | Section-level improvement suggestions |
 | `POST` | `/api/resume/optimize` | AI-optimized resume draft |
 | `POST` | `/api/resume/versions` | Generate multiple resume variants |
-| `POST` | `/api/resume/builder/generate` | Build from structured profile data |
+| `POST` | `/api/resume/builder/generate` | Build resume from structured profile data |
 | `POST` | `/api/resume/builder/assist-section` | AI help for a single section |
 | `POST` | `/api/resume/export/docx` | Export as DOCX |
 | `POST` | `/api/resume/export/pdf/{style}` | Export as PDF — `ats`, `minimal`, or `template` |
 
-**Key fields:**
+**Key request fields:**
 
-`/api/resume/match` & `/api/resume/optimize` → `resumeText` · `jobDescription` · `skills` · `candidateStage` · `roleType`
+`/api/resume/match` & `/api/resume/optimize`
+→ `resumeText` · `jobDescription` · `skills` · `candidateStage` · `roleType`
 
-`/api/resume/builder/generate` → `fullName` · `skills` · `roleType` · `candidateLevel`
+`/api/resume/builder/generate`
+→ `fullName` · `skills` · `roleType` · `candidateLevel`
+
+`/api/resume/export/pdf/{style}`
+→ `resumeText` · `fileName` · `documentTitle` · `templateProfile`
 
 ---
 
-## Docker (Render)
+## Docker — Render Deployment
 
-Dockerfile included — builds with Maven, runs Java 17, uses `prod` Spring profile, reads `PORT` env var.
+Dockerfile included — builds with Maven, runs Java 17, uses `prod` Spring profile, reads port from `PORT` env var (fallback `8080`).
 
-Minimum on Render: `APP_CORS_ALLOWED_ORIGINS` + `GEMINI_API_KEY` or `OPENROUTER_API_KEY`
+**Minimum required on Render:**
+
+```
+APP_CORS_ALLOWED_ORIGINS=https://your-frontend.netlify.app
+GEMINI_API_KEY=your_key_here
+```
+
+---
+
+## CORS
+
+If API calls fail from the browser, the most common reason is a missing CORS origin.
+Whenever the frontend domain changes → update `APP_CORS_ALLOWED_ORIGINS` → redeploy backend.
 
 ---
 
 ## Troubleshooting
 
-> **Backend not reachable** — Render free tier sleeps after inactivity. Wait 30–60s on first request. Check CORS and deploy logs.
-
-> **"Only PDF and DOCX supported"** — TXT and image files not accepted. Scanned PDFs with no text layer also fail.
-
-> **Validation errors** — Resume and job description must each be 80–12000 characters. Paste full content, not a summary.
-
-> **CORS errors** — When frontend domain changes, update `APP_CORS_ALLOWED_ORIGINS` and redeploy the backend.
+| Problem | Fix |
+|---|---|
+| **Backend not reachable** | Render free tier sleeps after inactivity — wait 30–60s on first request. Check deploy logs. |
+| **"Only PDF and DOCX supported"** | TXT and image files not accepted. Scanned PDFs with no text layer also fail. |
+| **Validation error on resume/JD** | Both must be 80–12000 characters — paste full content, not a title or summary. |
+| **CORS error in browser** | Update `APP_CORS_ALLOWED_ORIGINS` with new frontend URL and redeploy backend. |
 
 ---
 
 <div align="center">
+
+> *"Built to help job seekers land more interviews — one optimized resume at a time."*
+
+<br/>
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:00d9ff,100:0f2027&height=100&section=footer&animation=fadeIn"/>
 
